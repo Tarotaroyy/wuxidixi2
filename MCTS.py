@@ -18,17 +18,15 @@ def reward(cube):
     return 1 if py222.isSolved(cube, True) else -1
 
 def solveSingleCubeGreedy(model, cube, maxMoves):
-    numMovesTaken = 0
-    while numMovesTaken <= maxMoves:
-        if py222.isSolved(cube, convert=True):
-            return True, numMovesTaken, cube
-        state = np.array([py222.getState(cube).flatten()])
-        _, policies = model.predict(state)
-        policiesArray = policies[0]
-        bestMove = policiesArray.argmax()
-        cube = py222.doAlgStr(cube, moves[bestMove])
-        numMovesTaken += 1
-    return False, maxMoves+1, cube
+    for move_num in range(maxMoves):
+        if py222.isSolved(cube):
+            return True, move_num
+        state = py222.getState(cube).flatten()[None, :]
+        _, policy = model.predict(state)
+        best_move = np.argmax(policy[0])
+        cube = py222.doAlgStr(cube, moves[best_move])
+    return False, maxMoves
+
 
 def solveSingleCubeVanillaMCTS(model, cube, maxMoves, maxDepth):
     numMovesTaken = 0
