@@ -85,7 +85,7 @@ if __name__ == "__main__":
         if model_prefix == "default":
             model_prefix = constants.kModelPath
         if sys.argv[1].lower() == "-newmodel":
-            model = doADI(k=20,l=1,M=100)
+            model = doADI(k=20, l=1, M=100, batch_size=10)
             model.save("{}.h5".format(model_prefix))
             print("Model saved in path: {}.h5".format(model_prefix))
         elif sys.argv[1].lower() == "-restoremodel":
