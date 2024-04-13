@@ -50,58 +50,56 @@ def doADI(k, l, M, batch_size):
     compileModel(model, constants.kLearningRate)
 
     for iterNum in range(M):
-        samples, _ = generateSamples(k, l, batch_size)
-        states = np.vstack([py222.getState(sample).flatten() for sample in samples])
-        optimalVals = []
-        optimalPolicies = []
-
-        for sample in samples:
+        samples, states = generateSamples(k, l, batch_size)
+        optimalVals = np.empty((len(samples), 1))
+        optimalPolicies = np.empty(len(samples), dtype=np.int32)
+        
+        for i, sample in enumerate(samples):
             values = []
             for move in moves:
                 child = py222.doAlgStr(sample, move)
                 childState = py222.getState(child).flatten()[None, :]
                 value, _ = model.predict(childState)
-                value = value[0][0] + reward(child)
-                values.append(value)
+                values.append(value[0][0] + reward(child))
             
-            optimalVals.append(np.max(values))
-            optimalPolicies.append(np.argmax(values))
+            optimalVals[i] = np.max(values)
+            optimalPolicies[i] = np.argmax(values)
 
-        model.fit(states, {"PolicyOutput": optimalPolicies, "ValueOutput": optimalVals}, 
-                  batch_size=batch_size, epochs=constants.kNumMaxEpochs, verbose=False)
+        model.fit(states, {"PolicyOutput": optimalPolicies, "ValueOutput": optimalVals},
+                  batch_size=batch_size, epochs=constants.kNumMaxEpochs, verbose=True)
+        print(f"Iteration {iterNum+1} completed")
 
-        gc.collect()
-        print(f"Iteration {iterNum} completed")
-
-    return model
-
+    model.save(f"{constants.kModelPath}.h5")
+    print("Model saved at:", constants.kModelPath)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) <= 3:
-        print("Invalid number of arguments. Must specify model source (-newmodel or -restoremodel) followed by model prefix (can enter 'default' for default prefix) and search strategy (-greedy, -vanillamcts, -fullmcts)")
+    if len(sys.argv) < 4:
+        print("Usage: python ADI.py -newmodel|-restoremodel <model_prefix> -greedy|-vanillamcts|-fullmcts")
     else:
         model_prefix = sys.argv[2]
         if model_prefix == "default":
             model_prefix = constants.kModelPath
+        model_path = f"{model_prefix}.h5"
+
         if sys.argv[1].lower() == "-newmodel":
             model = doADI(k=20, l=1, M=100, batch_size=10)
-            model.save("{}.h5".format(model_prefix))
-            print("Model saved in path: {}.h5".format(model_prefix))
+            print("Model saved at:", model_path)
         elif sys.argv[1].lower() == "-restoremodel":
-            model = load_model("{}.h5".format(model_prefix))
-            print("Model restored from " + model_prefix)
-        else:
-            print("Invalid first argument: must be -newmodel or -restoremodel")
-
-        #only simulate cubes upon restoring model for now. can be removed later
-        if sys.argv[1].lower() == "-restoremodel":
-            if sys.argv[3].lower() == "-greedy":
+            model = load_model(model_path)
+            print("Model restored from", model_path)
+            strategy = sys.argv[3].lower()
+            if strategy == "-greedy":
                 MCTS.simulateCubeSolvingGreedy(model, numCubes=50, maxSolveDistance=7)
-            if sys.argv[3].lower() == "-vanillamcts":
+            elif strategy == "-vanillamcts":
                 MCTS.simulateCubeSolvingVanillaMCTS(model, numCubes=50, maxSolveDistance=7)
-            if sys.argv[3].lower() == "-fullmcts":
+            elif strategy == "-fullmcts":
                 MCTS.simulateCubeSolvingFullMCTS(model, numCubes=50, maxSolveDistance=7)
+            else:
+                print("Invalid search strategy:", strategy)
+        else:
+            print("Invalid operation mode:", sys.argv[1].lower())
+
 
 
 
