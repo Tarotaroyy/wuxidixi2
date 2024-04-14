@@ -83,7 +83,7 @@ if __name__ == "__main__":
         model_path = f"{model_prefix}.h5"
 
         if sys.argv[1].lower() == "-newmodel":
-            model = doADI(k=20, l=1, M=100, batch_size=10)
+            model = doADI(k=20, l=1, M=100, batch_size=40)
             print("Model saved at:", model_path)
         elif sys.argv[1].lower() == "-restoremodel":
             model = load_model(model_path)
