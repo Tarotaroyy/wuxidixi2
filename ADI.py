@@ -13,6 +13,10 @@ from tensorflow.keras.models import load_model
 import MCTS
 import constants
 import time
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from sklearn.model_selection import train_test_split
+
+
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"]="3"
 
@@ -45,9 +49,14 @@ def generateSamples(k, l, batch_size):
 def reward(cube):
     return 1 if py222.isSolved(cube, True) else -1
 
+
 def doADI(k, l, M, batch_size):
     model = buildModel(constants.kNumStickers * constants.kNumCubes)
     compileModel(model, constants.kLearningRate)
+
+    # Early Stopping and Checkpoint
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True, verbose=1)
+    model_checkpoint = ModelCheckpoint(f"{constants.kModelPath}.h5", monitor='val_loss', save_best_only=True, verbose=1)
 
     for iterNum in range(M):
         samples, states = generateSamples(k, l, batch_size)
@@ -64,13 +73,29 @@ def doADI(k, l, M, batch_size):
             
             optimalVals[i] = np.max(values)
             optimalPolicies[i] = np.argmax(values)
+        
+        # Splitting data into training and validation sets
+        X_train, X_val, Y_train_policy, Y_val_policy, Y_train_value, Y_val_value = train_test_split(
+            states,
+            optimalPolicies,
+            optimalVals,
+            test_size=0.2,  # 20% for validation
+            random_state=42
+        )
 
-        model.fit(states, {"PolicyOutput": optimalPolicies, "ValueOutput": optimalVals},
-                  batch_size=batch_size, epochs=constants.kNumMaxEpochs, verbose=True)
+        # Fit the model
+        model.fit(
+            X_train, {'PolicyOutput': Y_train_policy, 'ValueOutput': Y_train_value},
+            validation_data=(X_val, {'PolicyOutput': Y_val_policy, 'ValueOutput': Y_val_value}),
+            batch_size=batch_size,
+            epochs=constants.kNumMaxEpochs,
+            verbose=True,
+            callbacks=[early_stopping, model_checkpoint]
+        )
         print(f"Iteration {iterNum+1} completed")
 
-    model.save(f"{constants.kModelPath}.h5")
-    print("Model saved at:", constants.kModelPath)
+    print("Model training completed. Checkpoint saved at:", constants.kModelPath)
+
 
 
 if __name__ == "__main__":
@@ -83,7 +108,7 @@ if __name__ == "__main__":
         model_path = f"{model_prefix}.h5"
 
         if sys.argv[1].lower() == "-newmodel":
-            model = doADI(k=20, l=1, M=100, batch_size=40)
+            model = doADI(k=20, l=1, M=100, batch_size=30)
             print("Model saved at:", model_path)
         elif sys.argv[1].lower() == "-restoremodel":
             model = load_model(model_path)
