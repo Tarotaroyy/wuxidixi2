@@ -9,7 +9,7 @@ model_path = "{}.h5".format(constants.kModelPath)
 model = load_model(model_path)
 
 # Set parameters for the cube solving
-scrambleDepth = 2  # Depth of cube scrambling
+scrambleDepth = 3  # Depth of cube scrambling
 maxMoves = 100     # Maximum number of moves allowed for solving
 
 # Create a scrambled cube with the specified depth
