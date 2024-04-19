@@ -1,7 +1,7 @@
 # Import necessary libraries
 from tensorflow.keras.models import load_model  # To load the trained model
 import constants
-import py222
+import CubeLib
 import MCTS
 import numpy as np
 
@@ -15,7 +15,7 @@ def findMove(prev_state, curr_state):
     # Loop through each move
     for move in moves:
         # Apply the move to the previous state
-        next_state = py222.doAlgStr(prev_state, move)
+        next_state = CubeLib.doAlgStr(prev_state, move)
 
         # If the next state matches the current state, return the move
         if np.array_equal(next_state, curr_state):
@@ -29,15 +29,15 @@ model_path = "{}.h5".format(constants.kModelPath)
 model = load_model(model_path)
 
 # Set the parameters
-scrambleDepth = 2  # Adjust as needed
+scrambleDepth = 3  # Adjust as needed
 maxMoves = 1000      # Adjust as needed
 
 # Create a scrambled cube
-scrambledCube = py222.createScrambledCube(scrambleDepth)
+scrambledCube = CubeLib.createScrambledCube(scrambleDepth)
 
 # Display the initial cube
 print("Initial Cube:")
-py222.printCube(py222.getNumerical(scrambledCube))
+CubeLib.printCube(CubeLib.getNumerical(scrambledCube))
 
 # Solve the cube using the MCTS algorithm
 result, numMoves, path = MCTS.solveSingleCubeFullMCTS(model, scrambledCube, maxMoves)
@@ -47,7 +47,7 @@ for i in range(1, len(path)):
     prev_state = path[i - 1]
     curr_state = path[i]
     move = findMove(prev_state, curr_state)
-    scrambledCube = py222.doAlgStr(scrambledCube, move)
+    scrambledCube = CubeLib.doAlgStr(scrambledCube, move)
 
 # Check if the cube was solved
 if result:
@@ -57,4 +57,4 @@ else:
 
 # Display the solved cube
 print("Solved Cube:")
-py222.printCube(py222.getNumerical(scrambledCube))
+CubeLib.printCube(CubeLib.getNumerical(scrambledCube))

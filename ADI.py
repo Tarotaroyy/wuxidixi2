@@ -1,4 +1,4 @@
-import py222
+import CubeLib
 from random import randint
 import numpy as np
 import tensorflow as tf
@@ -32,11 +32,11 @@ def generateSamples(k, l, batch_size):
     all_states = []
     
     for _ in range(batch_size):
-        currentCube = py222.initState()
+        currentCube = CubeLib.initState()
         for _ in range(total_samples):
             move = getRandomMove()
-            scrambledCube = py222.doAlgStr(currentCube, move)
-            state = py222.getState(scrambledCube).flatten()
+            scrambledCube = CubeLib.doAlgStr(currentCube, move)
+            state = CubeLib.getState(scrambledCube).flatten()
             all_samples.append(scrambledCube)
             all_states.append(state)
             currentCube = scrambledCube
@@ -47,7 +47,7 @@ def generateSamples(k, l, batch_size):
 
 
 def reward(cube):
-    return 1 if py222.isSolved(cube, True) else -1
+    return 1 if CubeLib.isSolved(cube, True) else -1
 
 
 def doADI(k, l, M, batch_size):
@@ -66,8 +66,8 @@ def doADI(k, l, M, batch_size):
         for i, sample in enumerate(samples):
             values = []
             for move in moves:
-                child = py222.doAlgStr(sample, move)
-                childState = py222.getState(child).flatten()[None, :]
+                child = CubeLib.doAlgStr(sample, move)
+                childState = CubeLib.getState(child).flatten()[None, :]
                 value, _ = model.predict(childState)
                 values.append(value[0][0] + reward(child))
             

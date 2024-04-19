@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt  # Importing matplotlib for plotting
 from tensorflow.keras.models import load_model  # To load the trained model
 import constants
-import py222
+import CubeLib
 import MCTS
 
 
@@ -24,7 +24,7 @@ time_taken_list = []
 # Run the experiment for the specified number of trials
 for i in range(num_trials):
     # Create a scrambled cube with the specified depth
-    scrambledCube = py222.createScrambledCube(scrambleDepth)
+    scrambledCube = CubeLib.createScrambledCube(scrambleDepth)
 
     # Solve the scrambled cube using the vanilla MCTS algorithm
     result, numMoves, _ = MCTS.solveSingleCubeVanillaMCTS(model, scrambledCube, maxMoves, maxDepth)

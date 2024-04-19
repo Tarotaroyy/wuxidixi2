@@ -1,7 +1,7 @@
 # Import necessary libraries
 from tensorflow.keras.models import load_model  # To load the trained model
 import constants
-import py222
+import CubeLib
 import MCTS
 
 # Load the trained model using the correct filename
@@ -13,11 +13,11 @@ scrambleDepth = 3  # Depth of cube scrambling
 maxMoves = 100     # Maximum number of moves allowed for solving
 
 # Create a scrambled cube with the specified depth
-scrambledCube = py222.createScrambledCube(scrambleDepth)
+scrambledCube = CubeLib.createScrambledCube(scrambleDepth)
 
 # Display the initial cube
 print("Initial Cube:")
-py222.printCube(py222.getNumerical(scrambledCube))
+CubeLib.printCube(CubeLib.getNumerical(scrambledCube))
 
 # Solve the scrambled cube using the greedy algorithm
 result, numMoves, scrambledCube = MCTS.solveSingleCubeGreedy(model, scrambledCube, maxMoves)
@@ -31,4 +31,4 @@ else:
 
 # Display the solved cube
 print("Solved Cube:")
-py222.printCube(py222.getNumerical(scrambledCube))
+CubeLib.printCube(CubeLib.getNumerical(scrambledCube))

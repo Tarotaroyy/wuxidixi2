@@ -1,9 +1,21 @@
-# RubiksSolver
+# COMP579 - Final Project
+By Estelle and Selina
+# Solving rubik's cube without human knowledge
 
-This is a final project for the CS238 class at Stanford University. 
 
-Contributions by Robert Matthew Jinwei Jones, Jessica Lauren Guo and Nick Bomwan.
+Warning: running one algorithm took as 10-20 hours.
 
-The code in this repository implements deep reinforcement learning approaches for solving a Rubik's Cube without Human Knowledge as outlined in this paper:
+Here's how to run:
+!python CubeLib.py
+!python constants.py
+!python CubeModel.py
+!python MCTS.py
+!python ADI.py -newmodel default -greedy
 
-https://arxiv.org/abs/1805.07470
+!python Simulate_Greedy.py
+
+!python Experiment_Greedy.py
+
+
+(For a different algo, just run the simulate and experiment python file named after the algorithm)
+
