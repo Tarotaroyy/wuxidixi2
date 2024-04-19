@@ -9,7 +9,7 @@ model_path = "{}.h5".format(constants.kModelPath)
 model = load_model(model_path)
 
 # Set the parameters
-scrambleDepth = 2  # Adjust as needed
+scrambleDepth = 3  # Adjust as needed
 maxMoves = 100      # Adjust as needed
 maxDepth = 10       # Adjust as needed
 
