@@ -108,66 +108,7 @@ def weighted_choice(weights):
     throw = np.random.rand()*norm
     return np.searchsorted(totals, throw)
 
-def solveSingleCubeFullMCTS(model, cube, maxMoves):
-    numMovesTaken = 0
-    simulatedPath = []
-    simulatedActions = []
-    treeStates = set()
-    seenStates = set()
-    currentCube = cube
-    currentCubeStr = str(cube)
-    counts = {}
-    maxVals = {}
-    priorProbabilities = {}
-    virtualLosses = {}
-    state = np.array([CubeLib.getState(currentCube).flatten()])
-    _, probs = model.predict(state)
-    probsArray = probs[0]
-    initStateVals(currentCubeStr, counts, maxVals, priorProbabilities, virtualLosses, probsArray)
-    seenStates.add(currentCubeStr)
-    simulatedPath.append(currentCube)
-    while numMovesTaken <= maxMoves:
-        if CubeLib.isSolved(currentCube, convert=True):
-            return True, numMovesTaken, simulatedPath
-        if currentCubeStr not in treeStates:
-            for move in moves:
-                childState = CubeLib.doAlgStr(currentCube, move)
-                childStateStr = str(childState)
-                if childStateStr not in seenStates:
-                    state = np.array([CubeLib.getState(childState).flatten()])
-                    _, probs = model.predict(state)
-                    probsArray = probs[0]
-                    initStateVals(childStateStr, counts, maxVals, priorProbabilities, virtualLosses, probsArray)
-                    seenStates.add(childStateStr)
-            state = np.array([CubeLib.getState(currentCube).flatten()])
-            value, _ = model.predict(state)
-            value = value[0][0]
-            for i, state in enumerate(simulatedPath):
-                if i < len(simulatedActions):
-                    stateStr = str(state)
-                    maxVals[stateStr][simulatedActions[i]] = max(maxVals[stateStr][simulatedActions[i]], value)
-                    counts[stateStr][simulatedActions[i]] += 1
-                    virtualLosses[stateStr][simulatedActions[i]] -= constants.kVirtualLoss
-            treeStates.add(currentCubeStr)
-        else:
-            actionVals = np.zeros(len(moves))
-            totalStateCounts = 0
-            for move in moves:
-                totalStateCounts += counts[currentCubeStr][move]
-            for i in range(len(moves)):
-                currMove = moves[i]
-                q = maxVals[currentCubeStr][currMove] - virtualLosses[currentCubeStr][currMove]
-                u = constants.kMCTSExploration * priorProbabilities[currentCubeStr][currMove] * math.sqrt(totalStateCounts)/(1+counts[currentCubeStr][currMove])
-                actionVals[i] = u + q
-            bestMoveIndex = actionVals.argmax()
-            bestMove = moves[bestMoveIndex]
-            virtualLosses[currentCubeStr][bestMove] += constants.kVirtualLoss
-            simulatedActions.append(bestMove)
-            currentCube = CubeLib.doAlgStr(currentCube, bestMove)
-            currentCubeStr = str(currentCube)
-            simulatedPath.append(currentCube)
-            numMovesTaken += 1
-    return False, maxMoves+1, simulatedPath
+
 
 def initStateVals(stateStr, counts, maxVals, priorProbabilities, virtualLosses, probs):
     counts[stateStr] = {}
@@ -212,16 +153,3 @@ def simulateCubeSolvingVanillaMCTS(model, numCubes, maxSolveDistance):
     solveLengths.sort()
     print(solveLengths[len(solveLengths)//2])
 
-def simulateCubeSolvingFullMCTS(model, numCubes, maxSolveDistance):
-    data = np.zeros(maxSolveDistance+1)
-    for currentSolveDistance in range(maxSolveDistance+1):
-        numSolved = 0
-        for j in range(numCubes):
-            scrambledCube = CubeLib.createScrambledCube(currentSolveDistance)
-            result, numMoves, solvePath = solveSingleCubeFullMCTS(model, scrambledCube, 20 * currentSolveDistance + 1)
-            print(numMoves, numMoves != 20*currentSolveDistance + 2)
-            if result:
-                numSolved += 1
-        percentageSolved = float(numSolved)/numCubes
-        data[currentSolveDistance] = percentageSolved
-    print(data)

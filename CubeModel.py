@@ -18,3 +18,4 @@ def compileModel(model, learningRate):
     model.compile(optimizer=RMSprop(learning_rate=learningRate),
                   loss={"ValueOutput" : "mean_squared_error",
                         "PolicyOutput" : "sparse_categorical_crossentropy"})
+
